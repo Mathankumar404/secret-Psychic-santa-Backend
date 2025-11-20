@@ -8,17 +8,13 @@ dotenv.config();
 const app = express();
 app.use(express.json());
 
-// -------------------------------
 // Supabase Client
-// -------------------------------
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// -------------------------------
-// Nodemailer Transporter
-// -------------------------------
+// Nodemailer
 const transporter = nodemailer.createTransport({
   host: process.env.MAIL_HOST,
   port: process.env.MAIL_PORT,
@@ -29,19 +25,19 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// -------------------------------
 // Function: Check Email Schedule
-// -------------------------------
 async function checkScheduledEmails() {
   const now = new Date().toISOString();
-
   console.log("⏳ Checking for scheduled emails...");
 
+  // Fetch only 5 emails at a time
   const { data: emails, error } = await supabase
     .from("scheduled_emails")
     .select("*")
     .eq("status", "pending")
-    .lte("schedule_time", now);
+    .lte("schedule_time", now)
+    .order("schedule_time", { ascending: true })
+    .limit(5);
 
   if (error) {
     console.error("Supabase Error:", error);
@@ -55,14 +51,15 @@ async function checkScheduledEmails() {
   for (let email of emails) {
     try {
       await transporter.sendMail({
-        from: ` ${process.env.MAIL_USER}`,
-        to: email.to_email,   
+        from: process.env.MAIL_USER,
+        to: email.to_email,
         subject: email.subject,
         text: email.message,
       });
 
       console.log("✅ Email sent to:", email.to_email);
 
+      // Mark as sent
       await supabase
         .from("scheduled_emails")
         .update({ status: "sent" })
@@ -79,13 +76,10 @@ async function checkScheduledEmails() {
   }
 }
 
-// Loop every 1 second
+// Run every 30 seconds
 setInterval(checkScheduledEmails, 30000);
 
-
-// -------------------------------
 // Start Server
-// -------------------------------
 app.listen(5000, () => {
   console.log("🚀 Server running on port 5000");
 });
