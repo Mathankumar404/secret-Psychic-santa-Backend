@@ -1,0 +1,15 @@
+{
+  "name": "supabase-mail-scheduler",
+  "version": "1.0.0",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.44.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.19.2",
+    "nodemailer": "^6.9.11"
+  }
+}
