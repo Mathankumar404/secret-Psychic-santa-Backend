@@ -80,7 +80,8 @@ async function checkScheduledEmails() {
 }
 
 // Loop every 1 second
-setInterval(checkScheduledEmails, 1000);
+setInterval(checkScheduledEmails, 30000);
+
 
 // -------------------------------
 // Start Server
